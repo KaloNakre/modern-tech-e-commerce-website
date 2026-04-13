@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Your TechOne Shopping Cart – Review and checkout your selected tech products.">
+    <title>Shopping Cart – TechOne</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="cart-body">
+
+<!-- ===== HEADER ===== -->
+<header class="site-header">
+    <nav class="navbar">
+        <div class="navbar-inner">
+
+            <a href="index.html" class="nav-logo">
+                <div class="logo-img"></div>
+            </a>
+
+            <div class="nav-deliver">
+                <i class="fa-solid fa-location-dot nav-deliver-icon"></i>
+                <div>
+                    <span class="nav-sub-label">Deliver to</span>
+                    <select class="country-select">
+                        <option value="BD">Bangladesh</option>
+                        <option value="US">USA</option>
+                        <option value="UK">UK</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="JP">Japan</option>
+                        <option value="AE">UAE</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="nav-search">
+                <select class="search-category">
+                    <option>All</option>
+                    <option>Laptops</option>
+                    <option>Phones</option>
+                    <option>Audio</option>
+                    <option>Cameras</option>
+                    <option>Gaming</option>
+                    <option>Wearables</option>
+                </select>
+                <input type="text" class="search-input" placeholder="Search for tech products...">
+                <button class="search-btn" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+
+            <div class="nav-right">
+                <a href="login.html" class="nav-item">
+                    <span class="nav-sub-label">Hello, Sign in</span>
+                    <span class="nav-main-label">Account <i class="fa-solid fa-chevron-down nav-chevron"></i></span>
+                </a>
+                <a href="orders.html" class="nav-item">
+                    <span class="nav-sub-label">Returns &</span>
+                    <span class="nav-main-label">Orders</span>
+                </a>
+                <a href="wishlist.html" class="nav-item" id="nav-wishlist">
+                    <div class="cart-icon-wrap">
+                        <i class="fa-solid fa-heart"></i>
+                        <span class="wishlist-badge">0</span>
+                    </div>
+                    <span class="nav-main-label">Wishlist</span>
+                </a>
+                <a href="compare.html" class="nav-item" id="nav-compare">
+                    <div class="cart-icon-wrap">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <span class="compare-badge">0</span>
+                    </div>
+                    <span class="nav-main-label">Compare</span>
+                </a>
+                <a href="cart.html" class="nav-item nav-cart">
+                    <div class="cart-icon-wrap">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="cart-badge">3</span>
+                    </div>
+                    <span class="nav-main-label">Cart</span>
+                </a>
+            </div>
+
+        </div>
+    </nav>
+</header>
+
+<!-- ===== CART MAIN ===== -->
+<main class="cart-main">
+    <div class="cart-left">
+        <h1>Shopping Cart</h1>
+        <p class="price-header">Price</p>
+
+        <div id="cart-items-container">
+            <!-- Dynamic Items Injected Here -->
+        </div>
+
+        <div id="cart-summary-line" style="text-align: right; padding-top: 20px; border-top: 1px solid #e9ecef; margin-top: 20px;">
+            <p style="font-size: 1.2rem;">Subtotal (<span id="total-items-count">0</span> items): <b id="subtotal-display-bottom">$0.00</b></p>
+        </div>
+    </div>
+
+    <div class="cart-right">
+        <div class="subtotal-box">
+            <h2>Subtotal (<span id="total-items-top">0</span> items): <b id="subtotal-display-top">$0.00</b></h2>
+            <button class="checkout-btn" onclick="window.location.href='checkout.html'">Proceed to checkout</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    function updateBadges() {
+        // Cart
+        const cart = JSON.parse(localStorage.getItem('techone_cart')) || [];
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.querySelectorAll('.cart-badge').forEach(badge => {
+            badge.textContent = totalItems;
+        });
+
+        // Wishlist
+        const wishlist = JSON.parse(localStorage.getItem('techone_wishlist')) || [];
+        document.querySelectorAll('.wishlist-badge').forEach(badge => {
+            badge.textContent = wishlist.length;
+        });
+
+        // Compare
+        const compare = JSON.parse(localStorage.getItem('techone_compare')) || [];
+        document.querySelectorAll('.compare-badge').forEach(badge => {
+            badge.textContent = compare.length;
+        });
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items-container');
+        const cart = JSON.parse(localStorage.getItem('techone_cart')) || [];
+        const summaryLine = document.getElementById('cart-summary-line');
+        const checkoutBox = document.querySelector('.cart-right');
+        
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="empty-cart-container">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <h2>Your TechOne Cart is empty</h2>
+                    <p>Looks like you haven't added anything to your cart yet. Explore our latest tech deals!</p>
+                    <a href="index.html" class="continue-shopping-btn">Continue Shopping</a>
+                </div>
+            `;
+            summaryLine.style.display = 'none';
+            checkoutBox.style.display = 'none';
+            updateCartBadge();
+            return;
+        }
+
+        summaryLine.style.display = 'block';
+        checkoutBox.style.display = 'block';
+        container.innerHTML = '';
+        
+        let subtotal = 0;
+        let totalItems = 0;
+
+        cart.forEach((item, index) => {
+            const priceValue = parseFloat(item.price.replace(/[^0-9.-]+/g,""));
+            const itemTotal = priceValue * item.quantity;
+            subtotal += itemTotal;
+            totalItems += item.quantity;
+
+            container.innerHTML += `
+                <div class="cart-item">
+                    <div class="cart-item-img" style="background-image: url('${item.img}');"></div>
+                    <div class="cart-item-info">
+                        <h2>${item.name}</h2>
+                        <p class="stock">In Stock</p>
+                        <div class="cart-item-actions">
+                            <label>Qty:</label>
+                            <select onchange="updateQty('${item.name}', this.value)">
+                                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}" ${item.quantity == n ? 'selected' : ''}>${n}</option>`).join('')}
+                            </select>
+                            <a href="javascript:void(0)" onclick="removeFromCart('${item.name}')">Delete</a>
+                            <a href="#">Save for later</a>
+                        </div>
+                    </div>
+                    <div class="cart-item-price">${item.price}</div>
+                </div>
+            `;
+        });
+
+        const formattedSubtotal = `$${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        document.getElementById('subtotal-display-bottom').textContent = formattedSubtotal;
+        document.getElementById('subtotal-display-top').textContent = formattedSubtotal;
+        document.getElementById('total-items-count').textContent = totalItems;
+        document.getElementById('total-items-top').textContent = totalItems;
+        
+        updateCartBadge();
+    }
+
+    function updateQty(name, newQty) {
+        let cart = JSON.parse(localStorage.getItem('techone_cart')) || [];
+        const item = cart.find(i => i.name === name);
+        if (item) {
+            item.quantity = parseInt(newQty);
+            localStorage.setItem('techone_cart', JSON.stringify(cart));
+            renderCart();
+        }
+    }
+
+    function removeFromCart(name) {
+        let cart = JSON.parse(localStorage.getItem('techone_cart')) || [];
+        cart = cart.filter(item => item.name !== name);
+        localStorage.setItem('techone_cart', JSON.stringify(cart));
+        renderCart();
+    }
+
+    // Initial render
+    renderCart();
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+    <div class="footer-top-btn">
+        <button onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            <i class="fa-solid fa-chevron-up"></i> Back to Top
+        </button>
+    </div>
+    <div class="footer-main">
+        <div class="footer-col">
+            <h4>Get to Know Us</h4>
+            <ul>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">About TechOne</a></li>
+                <li><a href="#">Press Center</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Make Money with Us</h4>
+            <ul>
+                <li><a href="#">Sell on TechOne</a></li>
+                <li><a href="#">Become an Affiliate</a></li>
+                <li><a href="#">Advertise</a></li>
+                <li><a href="#">Self-Publish</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Payment & Delivery</h4>
+            <ul>
+                <li><a href="#">TechOne Pay</a></li>
+                <li><a href="#">Shop with Points</a></li>
+                <li><a href="#">Payment Methods</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Let Us Help You</h4>
+            <ul>
+                <li><a href="#">Your Account</a></li>
+                <li><a href="#">Your Orders</a></li>
+                <li><a href="#">Returns & Replacements</a></li>
+                <li><a href="#">Help Center</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-brand">
+        <div class="footer-logo"></div>
+        <div class="footer-socials">
+            <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" aria-label="X / Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>Copyright &copy; 2025 TechOne Limited. All Rights Reserved.</p>
+        <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Cookies</a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
